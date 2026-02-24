@@ -44,11 +44,11 @@
 # *.iml
 # *.ipr
 
-server/.idea/misc.xml
-server/.idea/modules.xml
-server/.idea/server.iml
-server/.idea/vcs.xml
-server/.idea/.gitignore
+*/.idea/misc.xml
+*/.idea/modules.xml
+*/.idea/server.iml
+*/.idea/vcs.xml
+*/.idea/.gitignore
 
 # CMake
 cmake-build-*/
