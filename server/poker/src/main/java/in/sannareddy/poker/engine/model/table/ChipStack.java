@@ -11,11 +11,15 @@ public class ChipStack {
     }
     public int addChips(int chips) {
         this.chips += chips;
-        return chips;
+        return this.chips;
     }
     //TODO: Implement validation
-    public int removeChips(int chips) {
-        this.chips -= Math.min(this.chips, chips);
-        return chips;
+    public int removeChips(int chips) throws Exception {
+        if(this.chips < chips) {
+            //TODO: Throw Exception - Not enough chips;
+            throw new Exception("Not enough chips");
+        }
+        this.chips -= chips;
+        return this.chips;
     }
 }

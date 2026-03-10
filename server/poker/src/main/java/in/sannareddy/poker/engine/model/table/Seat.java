@@ -17,6 +17,11 @@ public class Seat {
         this.index = index;
     }
 
+    public Seat(int index, Player player) {
+        this.index = index;
+        this.player = player;
+    }
+
     public boolean isOccupied() {
         return player != null;
     }
