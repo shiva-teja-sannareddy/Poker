@@ -18,6 +18,10 @@ public class Deck {
         return cards.removeLast();
     }
 
+    public void burn() {
+        deal();
+    }
+
     public void shuffle() {
         Collections.shuffle(cards);
     }

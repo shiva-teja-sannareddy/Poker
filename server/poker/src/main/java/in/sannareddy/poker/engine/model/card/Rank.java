@@ -4,22 +4,25 @@ import lombok.Getter;
 
 @Getter
 public enum Rank {
-    TWO(2),
-    THREE(3),
-    FOUR(4),
-    FIVE(5),
-    SIX(6),
-    SEVEN(7),
-    EIGHT(8),
-    NINE(9),
-    TEN(10),
-    JACK(11),
-    QUEEN(12),
-    KING(13),
+    TWO("2", 2),
+    THREE("3", 3),
+    FOUR("4", 4),
+    FIVE("5", 5),
+    SIX("6", 6),
+    SEVEN("7", 7),
+    EIGHT("8", 8),
+    NINE("9", 9),
+    TEN("10", 10),
+    JACK("J", 11),
+    QUEEN("Q", 12),
+    KING("K", 13),
     // TODO: Ace can also be 1
-    ACE(14);
+    ACE("A", 14);
 
+    private final String symbol;
     private final int value;
-
-    Rank(int value) { this.value = value; }
+    Rank(String symbol, int value) {
+        this.symbol = symbol;
+        this.value = value;
+    }
 }

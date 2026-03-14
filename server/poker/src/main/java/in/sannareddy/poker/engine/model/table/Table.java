@@ -1,8 +1,6 @@
 package in.sannareddy.poker.engine.model.table;
 
-import in.sannareddy.poker.engine.flow.ChipManager;
 import in.sannareddy.poker.engine.game.GameConfig;
-import in.sannareddy.poker.engine.model.card.Card;
 import in.sannareddy.poker.engine.model.player.Player;
 import in.sannareddy.poker.engine.util.RandomUtil;
 import lombok.Getter;
@@ -13,50 +11,67 @@ import java.util.List;
 
 @Getter
 public class Table {
-    private final GameConfig gameConfig;
+    private final int maxTableSize;
+    private final int initialPlayerChipStack;
     private final List<Seat> seats = new ArrayList<>();
-    private final List<Card> communityCards = new ArrayList<>(5);
-    private final List<Pot> pots = new ArrayList<>(3);
+    private final int smallBlind;
+    private final int bigBlind;
     private int dealerSeatNo = -1;
     private int smallBlindSeatNo = -1;
     private int bigBlindSeatNo = -1;
 
     public Table(GameConfig gameConfig) {
-        this.gameConfig = gameConfig;
+        this.maxTableSize = gameConfig.tableSize();
+        this.initialPlayerChipStack = gameConfig.initialPlayerChipStack();
+        this.smallBlind = gameConfig.initialSmallBlind();
+        this.bigBlind = gameConfig.initialBigBlind();
+        for(int i = 0; i < maxTableSize; i++) {
+            seats.add(new Seat(i));
+        }
     }
 
-    public Seat joinPlayer(Player player) {
-        if(seats.size() == getGameConfig().tableSize()) {
-            //TODO: Throw Exception - table full
-            return null;
+    public Seat joinPlayer(String id, String name) {
+        Player player = new Player(id, name, new ChipStack(initialPlayerChipStack));
+        if(seats.size() == maxTableSize) {
+            throw new IllegalStateException("Table is full");
         }
-        Seat seat = new Seat(seats.size(), player);
-        this.seats.add(seat);
+        Seat seat = seats.get(getEmptySeatPosition());
+        seat.setPlayer(player);
         return seat;
+    }
+
+    public void removePlayer(int seatNo) {
+        //TODO: Remove player logic
+        //TODO: Identify efficient way to add & remove players
     }
 
     public void pickDealer() {
         if(dealerSeatNo == -1) {
             dealerSeatNo = RandomUtil.getRandomNumber(0, seats.size()-1);
         }
-        while(!seats.get(dealerSeatNo).isActive()) {
-            dealerSeatNo = getNextActiveSeatPosition(dealerSeatNo);
-        }
     }
 
-    public void pickBlinds() {
+    public void moveDealer() {
+        dealerSeatNo = getNextActiveSeatPosition(dealerSeatNo);
+        pickBlinds();
+    }
+
+    private void pickBlinds() {
         smallBlindSeatNo = getNextActiveSeatPosition(dealerSeatNo);
         bigBlindSeatNo =  getNextActiveSeatPosition(smallBlindSeatNo);
     }
 
-    public void collectBlinds() throws Exception {
-        Pot initialPot = pots.get(0);
+    public void collectBlinds() {
+        collectSmallBlind();
+        collectBigBlind();
+    }
 
-        Seat smallBlind = seats.get(smallBlindSeatNo);
-        ChipManager.transferChips(smallBlind.getPlayer().getChipStack(), initialPot.getChipStack(), gameConfig.initialSmallBlind());
+    private void collectSmallBlind() {
+        seats.get(smallBlindSeatNo).getPlayer().bet(smallBlind);
+    }
 
-        Seat bigBlind = seats.get(bigBlindSeatNo);
-        ChipManager.transferChips(bigBlind.getPlayer().getChipStack(), initialPot.getChipStack(), gameConfig.initialBigBlind());
+    private void collectBigBlind() {
+        seats.get(bigBlindSeatNo).getPlayer().bet(bigBlind);
     }
 
     public List<Player> getActivePlayers() {
@@ -76,12 +91,12 @@ public class Table {
         return -1;
     }
 
-    public void resetCommunityCards() {
-        communityCards.clear();
-    }
-
-    public void resetPots() {
-        pots.clear();
-        pots.add(new Pot());
+    public int getEmptySeatPosition() {
+        for(int i=0; i<seats.size(); i++) {
+            if(seats.get(i).getPlayer() == null) {
+                return i;
+            }
+        }
+        return -1;
     }
 }

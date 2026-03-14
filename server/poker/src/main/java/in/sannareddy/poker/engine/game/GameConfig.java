@@ -8,5 +8,5 @@ package in.sannareddy.poker.engine.game;
  * Limit Type - NO Limit, POT Limit
  * Ante support
  */
-public record GameConfig(int tableSize, int initialSmallBlind, int initialBigBlind) {
+public record GameConfig(int tableSize, int initialSmallBlind, int initialBigBlind, int initialPlayerChipStack) {
 }
