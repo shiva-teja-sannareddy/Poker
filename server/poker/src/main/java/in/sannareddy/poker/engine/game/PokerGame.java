@@ -22,8 +22,12 @@ public class PokerGame {
         this.config = config;
     }
 
-    public Seat joinPlayer(String id, String name) {
+    public Seat playerJoined(String id, String name) {
         return table.joinPlayer(id, name);
+    }
+
+    public Seat playerLeft(int seatNo) {
+        return table.removePlayer(seatNo);
     }
 
     public void startGame() {
@@ -31,8 +35,7 @@ public class PokerGame {
             throw new IllegalStateException("Not enough players to start a game");
         }
         gameState = GameState.IN_PROGRESS;
-        roundManager = new RoundManager(table);
-        table.pickDealer();
+        roundManager = new RoundManager(table, config);
         roundManager.startHand(table);
     }
 }

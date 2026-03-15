@@ -1,52 +1,54 @@
 package in.sannareddy.poker.engine.flow;
 
-import in.sannareddy.poker.engine.game.GameState;
+import in.sannareddy.poker.engine.game.GameConfig;
 import in.sannareddy.poker.engine.game.PokerHand;
 import in.sannareddy.poker.engine.model.table.Table;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
 public class RoundManager {
-    private Table table;
-    @Setter
+    private final Table table;
     private PokerHand currentPokerHand;
+    private int smallBlind;
+    private int bigBlind;
 
-    public RoundManager(Table table) {
+    public RoundManager(Table table, GameConfig gameConfig) {
         this.table = table;
+        this.table.pickDealer();
+        this.smallBlind = gameConfig.initialSmallBlind();
+        this.bigBlind = gameConfig.initialBigBlind();
     }
 
     public void startHand(Table table) {
         table.moveDealer();
-        table.collectBlinds();
+        collectBlinds();
         currentPokerHand = new PokerHand(table);
-    }
-
-    public void dealPreFlop() {
         currentPokerHand.dealHoleCards();
-        currentPokerHand.startBetting();
     }
 
-    public void dealFlop() {
-        currentPokerHand.dealCommunityCards(3);
-        currentPokerHand.startBetting();
-        currentPokerHand.revealCommunityCards();
+    public void advanceRound() {
+        switch (currentPokerHand.getCurrentRound()) {
+            case PRE_FLOP -> currentPokerHand.dealFlop();
+            case FLOP -> currentPokerHand.dealTurn();
+            case TURN -> currentPokerHand.dealRiver();
+            case RIVER -> currentPokerHand.showDown();
+            case SHOWDOWN -> currentPokerHand.distributePot();
+            default -> throw new IllegalStateException("Unexpected value: " + currentPokerHand.getCurrentRound());
+        }
     }
 
-    public void dealLondon() {
-        currentPokerHand.dealCommunityCards(1);
-        currentPokerHand.startBetting();
-        currentPokerHand.revealCommunityCards();
+
+    public void collectBlinds() {
+        collectSmallBlind();
+        collectBigBlind();
     }
 
-    public void dealRiver() {
-        currentPokerHand.dealCommunityCards(1);
-        currentPokerHand.startBetting();
-        currentPokerHand.revealCommunityCards();
+    private void collectSmallBlind() {
+
     }
 
-    public void showDown() {
-        currentPokerHand.startBetting();
-        currentPokerHand.revealPlayerCards();
+    private void collectBigBlind() {
+
     }
+
 }

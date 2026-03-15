@@ -3,9 +3,9 @@ package in.sannareddy.poker.engine.model.table;
 import in.sannareddy.poker.engine.game.GameConfig;
 import in.sannareddy.poker.engine.model.player.Player;
 import in.sannareddy.poker.engine.util.RandomUtil;
+import in.sannareddy.poker.engine.util.collections.CircularArrayList;
 import lombok.Getter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -13,82 +13,65 @@ import java.util.List;
 public class Table {
     private final int maxTableSize;
     private final int initialPlayerChipStack;
-    private final List<Seat> seats = new ArrayList<>();
-    private final int smallBlind;
-    private final int bigBlind;
-    private int dealerSeatNo = -1;
-    private int smallBlindSeatNo = -1;
-    private int bigBlindSeatNo = -1;
+    private final CircularArrayList<Seat> seats = new CircularArrayList<>();
+    private Seat dealerSeat;
 
     public Table(GameConfig gameConfig) {
         this.maxTableSize = gameConfig.tableSize();
         this.initialPlayerChipStack = gameConfig.initialPlayerChipStack();
-        this.smallBlind = gameConfig.initialSmallBlind();
-        this.bigBlind = gameConfig.initialBigBlind();
         for(int i = 0; i < maxTableSize; i++) {
             seats.add(new Seat(i));
         }
     }
 
     public Seat joinPlayer(String id, String name) {
-        Player player = new Player(id, name, new ChipStack(initialPlayerChipStack));
-        if(seats.size() == maxTableSize) {
+        if (seats.size() == maxTableSize) {
             throw new IllegalStateException("Table is full");
         }
+        Player player = new Player(id, name, new ChipStack(initialPlayerChipStack));
+        return this.joinPlayer(player);
+    }
+
+    public Seat joinPlayer(Player player) {
         Seat seat = seats.get(getEmptySeatPosition());
-        seat.setPlayer(player);
+        seat.sit(player);
         return seat;
     }
 
-    public void removePlayer(int seatNo) {
-        //TODO: Remove player logic
-        //TODO: Identify efficient way to add & remove players
+    public Seat removePlayer(int seatNo) {
+        Seat seat = seats.get(seatNo);
+        seat.leave();
+        return seat;
     }
 
     public void pickDealer() {
-        if(dealerSeatNo == -1) {
-            dealerSeatNo = RandomUtil.getRandomNumber(0, seats.size()-1);
+        if(dealerSeat == null) {
+            int dealerSeatNo = RandomUtil.getRandomNumber(0, seats.size()-1);
+            this.dealerSeat = seats.get(dealerSeatNo);
         }
     }
 
     public void moveDealer() {
-        dealerSeatNo = getNextActiveSeatPosition(dealerSeatNo);
-        pickBlinds();
-    }
-
-    private void pickBlinds() {
-        smallBlindSeatNo = getNextActiveSeatPosition(dealerSeatNo);
-        bigBlindSeatNo =  getNextActiveSeatPosition(smallBlindSeatNo);
-    }
-
-    public void collectBlinds() {
-        collectSmallBlind();
-        collectBigBlind();
-    }
-
-    private void collectSmallBlind() {
-        seats.get(smallBlindSeatNo).getPlayer().bet(smallBlind);
-    }
-
-    private void collectBigBlind() {
-        seats.get(bigBlindSeatNo).getPlayer().bet(bigBlind);
+        dealerSeat = getNextActiveSeat(dealerSeat);
     }
 
     public List<Player> getActivePlayers() {
         return seats.stream()
                 .map(Seat::getPlayer)
-                .filter(player -> player != null && (player.isActive() || player.isAllIn()))
+                .filter(player -> player != null && player.isActive())
                 .toList();
     }
 
-    public int getNextActiveSeatPosition(int currentSeatNo) {
+    public Seat getNextActiveSeat(Seat currentSeat) {
+        int currentSeatNo = currentSeat.getIndex();
         for(int i=1; i<seats.size(); i++) {
             int position = (currentSeatNo + i) % seats.size();
-            if(seats.get(position).isOccupied()) {
-                return position;
+            Seat seat = seats.get(position);
+            if(seat.isOccupied() && seat.getPlayer().isActive()) {
+                return seat;
             }
         }
-        return -1;
+        return null;
     }
 
     public int getEmptySeatPosition() {
