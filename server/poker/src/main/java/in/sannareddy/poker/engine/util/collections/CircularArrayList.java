@@ -1,5 +1,7 @@
 package in.sannareddy.poker.engine.util.collections;
 
+import jakarta.annotation.Nonnull;
+
 import java.util.*;
 
 public class CircularArrayList<T> extends ArrayList<T> {
@@ -61,7 +63,11 @@ public class CircularArrayList<T> extends ArrayList<T> {
     }
 
     @Override
+    @Nonnull
     public Iterator<T> iterator() {
+        if (isEmpty()) {
+            throw new IllegalStateException("List is empty");
+        }
         return new CircularIterator(0);
     }
     public Iterator<T> iterator(int startingIndex) {

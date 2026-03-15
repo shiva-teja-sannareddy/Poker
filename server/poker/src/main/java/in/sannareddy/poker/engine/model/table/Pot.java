@@ -8,7 +8,7 @@ import java.util.Set;
 
 @Getter
 public class Pot {
-    private ChipStack chipStack = new ChipStack(0);
+    private final ChipStack chipStack = new ChipStack(0);
     private final Set<Player> playersInPot = new HashSet<>();
 
     public void addChips(int chips) {
