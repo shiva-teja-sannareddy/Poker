@@ -1,6 +1,6 @@
 package in.sannareddy.poker.engine.model.player;
 
-public enum PlayerState {
+public enum PlayerHandState {
     ACTIVE,
     FOLDED,
     ALL_IN,
